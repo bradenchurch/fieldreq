@@ -144,7 +144,165 @@ ROUTER: material_request
 
 ---
 
-## Context Injection — Boss Trains the Agent by Talking
+## Proactive VA — The Agent Learns Without Burdening the Boss
+
+**The rule:** The boss never gets interrupted unless it's urgent. The agent figures things out on its own or quietly learns over time. The boss should feel *served*, not *utilized*.
+
+### Design Philosophy
+
+| Burden feeling (what we avoid) | Proactive VA feeling (what we deliver) |
+|---|---|
+| "I have to upload docs" | "I forwarded that quote and my agent already knows it" |
+| "I have to correct the AI" | "My VA is getting sharper — it knew the spec this week" |
+| "I have to confirm every classification" | "Haven't had to fix anything in weeks" |
+| "I have to fill knowledge gaps" | "Glanced at the Friday email, replied to one thing in 30 seconds" |
+
+The Friday email is the **only touchpoint.** Everything else happens in the background. The boss's job is to use FieldReq, not train it. Training is a byproduct.
+
+### Five Silent Learning Loops
+
+**1 — Best-Guess Learning (no boss involvement)**
+
+When the agent doesn't know something, it finds the closest match, states its uncertainty, and learns from the response:
+
+```
+Crew: "What's the concrete spec for Pioneer retaining wall?"
+Agent: searches pgvector → no direct match for Pioneer
+Agent: searches similar projects → Pearson uses "3000 PSI, 6\" slump"
+Agent: "I don't have the Pioneer spec specifically, but Pearson
+       uses 3000 PSI, 6\" slump with rebar on 12\" centers.
+       Does that apply?"
+
+Crew: "Yeah same thing"
+→ Agent logs: Pioneer concrete = Pearson concrete (ID 8472)
+→ Knowledge base updated silently
+→ Confidence increased for both projects
+→ Boss never sees this interaction
+```
+
+**2 — Self-Healing Router Confidence**
+
+The router gets smarter through volume alone. No boss correction needed:
+
+```
+Week 1:
+  Crew: "grab me 20 concrete anchors"
+  Router: medium confidence (65%) → material_request
+  Agent responds, logs interaction, confidence at 65%
+
+Week 3:
+  Crew: "grab me 10 lag bolts"
+  Router: confidence at 78% — same pattern as "grab me"
+  
+Week 6:
+  Crew: "grab me 5 tubes of caulk"
+  Router: confidence at 94% — pattern confirmed across 47 interactions
+  
+Zero boss involvement. The router learns from confirmed interactions.
+```
+
+Signal: crew didn't follow up or clarify → conversation moved on naturally → classification was correct. Every successful interaction is a positive training signal.
+
+**3 — Friday Learning Digest (single weekly touchpoint)**
+
+```
+Subject: Pearson & Pioneer — Material List + What I Learned
+
+MATERIALS:
+Pearson ✓ Mike (PVC 200ft, Copper 50ft, T-joints)
+       ✗ Jose (no reply — nudged Thursday)
+Pioneer ✓ Dave (Concrete anchors 20x, 3in pipe 100ft)
+
+WHAT I LEARNED THIS WEEK:
+• Pioneer concrete spec confirmed: 3000 PSI, 6" slump
+• Added "DeWalt 12in miter saw" to equipment catalog
+• Jose usually replies late Friday — overriding Thursday nudge for him
+
+STILL UNCLEAR (if you have a minute):
+• Does Pioneer need an inspection permit for the retaining wall?
+  Dave asked but I don't have that info.
+• What's our account number with Ferguson?
+  Crew has asked twice this month.
+
+You can just reply to this email — I'll take care of the rest.
+```
+
+One email. One optional section. The boss can ignore "still unclear" and the agent still works fine. If they reply, it gets smarter. Either way, no interruption.
+
+**4 — Smart Escalation (only when it actually matters)**
+
+```
+Escalates to boss IMMEDIATELY:
+  🔴 "Concrete saw smoking — safety issue at Pioneer"
+  🔴 "Jose isn't responding and hasn't clocked in for 3 days"
+  🔴 "Inspector showed up at Pearson asking about permits"
+  🔴 "Injury reported — Joe fell at Pearson, conscious"
+
+Goes in Friday digest (no urgency):
+  🟡 "What's the Ferguson account number?"
+  🟡 "Does Pioneer need a retaining wall permit?"
+  🟡 "What's the spec for the new Highmark job?"
+  
+Handled silently (boss never sees):
+  🟢 Crew confirms a spec
+  🟢 Crew requests equipment reservation
+  🟢 Crew reports minor issue already resolved
+  🟢 Crew does a safety check-in
+  🟢 Crew asks a question the agent can answer from knowledge base
+```
+
+Escalation is deterministic: `severity === 'critical' || category === 'safety' || category === 'compliance' || category === 'injury'`.
+
+**5 — Invisible Context Injection (boss acts, agent learns)**
+
+```
+Boss forwards an email: "Pearson change order — copper pipe to PEX"
+
+Agent:
+  ├── Detects: change order pattern (from boss, not crew)
+  ├── Updates: Pearson project spec (copper → PEX)
+  ├── Logs: "Pearson pipe spec updated based on change order received 8/12"
+  └── Does NOT reply. Doesn't acknowledge. Just does it.
+
+Next time crew asks about Pearson pipe:
+  "PEX tubing. Spec changed last week per the change order."
+```
+
+Boss never feels like they "trained the agent." They just forwarded an email — the same thing they'd do with any assistant. The agent handled the rest in the background.
+
+### Confidence Tracking Per Company
+
+Behind the scenes, we track confidence per intent pattern per company:
+
+| Company | Intent | Pattern | Interactions | Confidence |
+|---|---|---|---|---|
+| Acme Plumbing | material_request | "grab me" | 47 | 94% |
+| Acme Plumbing | material_request | "I could use" | 3 | 42% |
+| Acme Plumbing | equipment_request | "I need the" + equip name | 28 | 88% |
+| Acme Plumbing | knowledge_query | "what's the spec" | 12 | 91% |
+
+The router self-improves. High confidence → auto-classify. Medium → classify but flag for review. Low → classify + note uncertainty in response. The boss only sees the fallback if the classification was visibly wrong.
+
+### The Virtuous Cycle
+
+```
+Boss signs up
+  → Crew starts using FieldReq
+  → Agent makes best guesses, sometimes fuzzy
+  → Boss forwards emails, texts context naturally
+  → Knowledge base improves
+  → Router confidence increases with volume
+  → Agent gets demonstrably better every week
+  → Crew trusts it more, uses it more
+  → More interactions = more training data
+  → Switching cost compounds
+  → Boss tells other contractors: "This thing just gets smarter"
+  → Churn approaches zero
+```
+
+---
+
+## Context Injection — Boss Teaches the Agent by Talking
 
 Instead of web forms, the boss teaches their agent via text, email, or photo.
 
@@ -551,13 +709,15 @@ All ride the same SMS → Router → Tool → LLM pipeline. Different intents, s
 
 | Moat component | Why it's defensible |
 |---|---|
-| **Company knowledge base** | Every text/email/photo from the boss makes the agent smarter. Data accumulates over years. Switching costs go up with every interaction. |
+| **Silent learning loop** | The agent gets smarter every week without the boss lifting a finger. After 6 months, their VA knows every spec, supplier, project layout, and crew pattern. Switching means training a new one from zero. No competitor can replicate years of learned context. |
+| **Company knowledge base** | Every text/email/photo the boss naturally sends makes the agent more capable. Data accumulates passively — the boss never "uploads docs," they just do their job. Switching cost compounds with every forwarded email. |
+| **Self-healing router confidence** | Intent classification improves with volume alone. No tuning, no training UI. The product literally gets better the more you use it — a positive feedback loop that makes churn approach zero. |
 | **Deterministic tool router** | Intent classification in code, not LLM. Reliable, predictable, debuggable. Competitors who route via LLM will hallucinate actions. |
 | **Zero data cross-contamination** | Five-layer isolation enforced in code. Enterprise-grade data security out of the box. |
 | **BusyBusy integration** | FieldReq is the only AI SMS layer that talks to their equipment data. Sticky for BusyBusy shops (thousands of companies). |
 | **No-crew-friction** | SMS-based. No apps. No logins. The crew experience is texting a phone number. Competitors building apps won't get crew adoption. |
 | **Platform pluggability** | BusyBusy → Procore → HCSS → any API. FieldReq is the communication layer on top of whatever ops stack the company uses. |
-| **Acquisition target** | If FieldReq owns the SMS communication layer for field crews, every construction software company (Procore, BusyBusy, HCSS, Autodesk) needs this. They build apps, not AI SMS assistants. |
+| **Acquisition target** | If FieldReq owns the AI SMS layer for field crews — and every interaction makes it more entrenched — every construction software company (Procore, BusyBusy, HCSS, Autodesk) needs this. They build apps. We build the interface their crews actually use. It's not a feature they can bolt on — it's a compounding data moat. |
 
 ---
 
