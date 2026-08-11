@@ -1,0 +1,8 @@
+{
+  "project": "Pearson Elementary",
+  "crew": [
+    { "name": "Mike", "phone": "+15555555551", "preferred_language": "en" },
+    { "name": "Jose", "phone": "+15555555552", "preferred_language": "es" },
+    { "name": "Dave", "phone": "+15555555553", "preferred_language": "en" }
+  ]
+}
