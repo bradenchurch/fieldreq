@@ -1,0 +1,78 @@
+{
+  "checkIns": [
+    {
+      "id": "1786292427294",
+      "timestamp": "2026-08-09T16:20:27.294Z",
+      "project": "Pearson Elementary",
+      "sentTo": 3,
+      "details": [
+        {
+          "name": "Mike",
+          "phone": "+15555555551",
+          "status": "sent",
+          "timestamp": "2026-08-09T16:20:27.294Z"
+        },
+        {
+          "name": "Jose",
+          "phone": "+15555555552",
+          "status": "sent",
+          "timestamp": "2026-08-09T16:20:27.294Z"
+        },
+        {
+          "name": "Dave",
+          "phone": "+15555555553",
+          "status": "sent",
+          "timestamp": "2026-08-09T16:20:27.294Z"
+        }
+      ]
+    },
+    {
+      "id": "1786294379984",
+      "timestamp": "2026-08-09T16:52:59.984Z",
+      "project": "Pearson Elementary",
+      "sentTo": 3,
+      "details": [
+        {
+          "name": "Mike",
+          "phone": "+15555555551",
+          "status": "sent",
+          "timestamp": "2026-08-09T16:52:59.984Z"
+        },
+        {
+          "name": "Jose",
+          "phone": "+15555555552",
+          "status": "sent",
+          "timestamp": "2026-08-09T16:52:59.984Z"
+        },
+        {
+          "name": "Dave",
+          "phone": "+15555555553",
+          "status": "sent",
+          "timestamp": "2026-08-09T16:52:59.984Z"
+        }
+      ]
+    }
+  ],
+  "responses": [
+    {
+      "id": "1786294380019",
+      "name": "Mike",
+      "phone": "+15555555551",
+      "message": "I need 20 concrete anchors for Pearson",
+      "project": "Pearson Elementary",
+      "timestamp": "2026-08-09T16:53:00.019Z",
+      "isMaterialReq": true,
+      "language": "en"
+    },
+    {
+      "id": "1786294380027",
+      "name": "Jose",
+      "phone": "+15555555552",
+      "message": "Necesito 10 tubos de PVC para Pearson",
+      "project": "Pearson Elementary",
+      "timestamp": "2026-08-09T16:53:00.027Z",
+      "isMaterialReq": true,
+      "language": "es"
+    }
+  ]
+}
